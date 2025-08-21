@@ -4,6 +4,8 @@
 #include <ESP8266WiFi.h>
 #include <espnow.h>
 
+#define DS D5
+#define SND D1
 #define LF D6
 #define LB D7
 #define RF D3
@@ -24,9 +26,10 @@ typedef struct struct_message {
   int LM;
   int RM;
   int DM;
+  int SND;
 } struct_message;
 
-// Create a struct_message called droidCommands to hold sensor readings
+// Create a struct_message called droidCommanDM to hold sensor readings
 struct_message droidCommands;
 
 // Create a struct_message to hold incoming sensor readings
@@ -51,6 +54,8 @@ void setup() {
   pinMode(LB, INPUT_PULLUP);
   pinMode(RF, INPUT_PULLUP);
   pinMode(RB, INPUT_PULLUP);
+  pinMode(DS, INPUT_PULLUP);
+  pinMode(SND, INPUT_PULLUP);
 }
 
 void setupWifi()
@@ -88,13 +93,16 @@ void loop()
   int LM =0; //Left Motor
   int RM = 0;
   int DM = 0;
+  int Sound = 0;
   
   // put your main code here, to run repeatedly:
   if(digitalRead(LF)==LOW){Serial.println("LF"); LM = 1;}
   if(digitalRead(LB)==LOW){Serial.println("LB"); LM = -1;}
   if(digitalRead(RF)==LOW){Serial.println("RF"); RM = 1;}
   if(digitalRead(RB)==LOW){Serial.println("RB");RM = -1;}
-  delay(500);
+  if(digitalRead(DS)==LOW){Serial.println("DS");DM = 1;}
+  if(digitalRead(SND)==LOW){Serial.println("SND"); Sound = 1;}
+  delay(100);
 
   //Build Data Instruction
   String command = "Instruction";
@@ -102,6 +110,8 @@ void loop()
   droidCommands.LM = LM;
   droidCommands.RM = RM;
   droidCommands.DM = DM;
+  droidCommands.SND = Sound;
+  
 
   // Send message via ESP-NOW
   esp_now_send(broadcastAddress, (uint8_t *) &droidCommands, sizeof(droidCommands));
